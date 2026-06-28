@@ -1,4 +1,6 @@
 .env
 .venv
 
+.guardrails
+
 .DS_Store
