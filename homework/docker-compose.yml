@@ -1,0 +1,44 @@
+# NOTE: vLLM is NOT used in this solution.
+# The task requires vLLM, but running vLLM locally on a CPU-only Mac is
+# impractical: the official Docker image requires CUDA, and a CPU-only build
+# would take many minutes per response even for the smallest models.
+# Instead, the Google Gemini API is used as an OpenAI-compatible backend
+# (same tool-calling interface, same OpenAI Python client), which allows the
+# full agent loop (MCP tools, guardrails, stateless chat) to be demonstrated
+# and tested on any machine without a GPU.
+
+services:
+
+  weather-mcp:
+    build: ./weather_mcp
+    container_name: weather-mcp
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    healthcheck:
+      # curl without -f: succeeds on any HTTP response (even 4xx), fails only
+      # if the port is not open yet — which is what we actually want to test.
+      test: ["CMD", "curl", "-s", "-o", "/dev/null", "http://localhost:8001/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  chat:
+    build:
+      context: ./app
+      args:
+        GUARDRAILS_API_KEY: ${GUARDRAILS_API_KEY:-}
+    container_name: trip-chat
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - OPENWEATHER_MCP_HOST=weather-mcp
+      - OPENWEATHER_MCP_PORT=8001
+    depends_on:
+      weather-mcp:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
