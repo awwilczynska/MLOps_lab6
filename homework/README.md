@@ -113,6 +113,7 @@ Type your question and press **Enter**. Example questions to try (checked by me)
 - `Plan a 5-day trip to Barcelona for me`
 - `What is the capital of France?`
 - `Write me a poem about life` ← model will refuse (not travel-related)
+- `What's the weather in Toronto for the next 9 days?` ← model will inform it can only provide up to 5 days and ask if you want a 5-day forecast instead
 
 When the model fetches data, you will see tool calls printed:
 
